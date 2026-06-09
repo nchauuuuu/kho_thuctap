@@ -1,0 +1,101 @@
+import { useLocation, useNavigate } from "react-router-dom";
+
+function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const getAuthUser = () => {
+    try {
+      const raw =
+        localStorage.getItem("authUser") ||
+        localStorage.getItem("user") ||
+        localStorage.getItem("nguoiDung");
+
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const authUser = getAuthUser();
+
+  const hoTen =
+    localStorage.getItem("hoTen") ||
+    authUser?.hoTen ||
+    authUser?.email ||
+    "Người dùng";
+
+  const tenVaiTro =
+    localStorage.getItem("tenVaiTro") ||
+    authUser?.tenVaiTro ||
+    "Chưa có vai trò";
+
+  const getRoleLabel = (role) => {
+    if (role === "QuanLyTiem") return "Quản lý tiệm";
+    if (role === "NhanVienKho") return "Nhân viên kho";
+    if (role === "NhanVienPhaChe") return "Nhân viên pha chế";
+    return role || "Chưa có vai trò";
+  };
+
+  const pageTitleMap = {
+    "/admin/dashboard": "Tổng quan hệ thống",
+    "/admin/nguyen-vat-lieu": "Quản lý nguyên vật liệu",
+    "/admin/nhom-nguyen-vat-lieu": "Nhóm nguyên vật liệu",
+    "/admin/don-vi-tinh": "Đơn vị tính",
+    "/admin/nha-cung-cap": "Nhà cung cấp",
+    "/admin/phieu-nhap-kho": "Phiếu nhập kho",
+    "/admin/yeu-cau-xuat-kho": "Yêu cầu xuất kho",
+    "/admin/phieu-xuat-kho": "Phiếu xuất kho",
+    "/admin/kiem-ke-kho": "Kiểm kê kho",
+    "/admin/bao-cao-xuat-nhap-ton": "Báo cáo tồn kho",
+    "/admin/nguoi-dung": "Quản lý người dùng",
+  };
+
+  const pageTitle = pageTitleMap[location.pathname] || "Quản lý kho Cafe";
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Bạn có chắc muốn đăng xuất không?");
+    if (!confirmLogout) return;
+
+    localStorage.clear();
+    navigate("/login", { replace: true });
+  };
+
+  return (
+    <header className="navbar-custom">
+      <div className="navbar-left">
+        <div className="navbar-breadcrumb">
+          <i className="bi bi-house-door"></i>
+          <span>Kho Cafe</span>
+          <i className="bi bi-chevron-right"></i>
+          <b>{pageTitle}</b>
+        </div>
+
+        <div>
+          <h5 className="navbar-title">{pageTitle}</h5>
+          <p className="navbar-subtitle">
+            Theo dõi và quản lý nghiệp vụ kho nguyên vật liệu
+          </p>
+        </div>
+      </div>
+
+      <div className="navbar-user">
+        <div className="navbar-avatar">
+          {String(hoTen || "U").charAt(0).toUpperCase()}
+        </div>
+
+        <div className="navbar-user-info">
+          <span>{hoTen}</span>
+          <small>{getRoleLabel(tenVaiTro)}</small>
+        </div>
+
+        <button type="button" className="logout-btn" onClick={handleLogout}>
+          <i className="bi bi-box-arrow-right"></i>
+          Đăng xuất
+        </button>
+      </div>
+    </header>
+  );
+}
+
+export default Navbar;
