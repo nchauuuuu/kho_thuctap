@@ -2977,3 +2977,166 @@ td .btn-delete::after {
   }
 }
 
+/* =========================
+   HEADER TITLE + LOGOUT MODAL
+========================= */
+
+.navbar-custom {
+  min-height: 82px !important;
+  grid-template-columns: minmax(270px, 0.85fr) minmax(420px, 1.2fr) auto !important;
+  gap: 22px !important;
+  padding: 12px 28px !important;
+}
+
+.navbar-left {
+  gap: 5px;
+}
+
+.navbar-breadcrumb {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+.navbar-page-title {
+  margin: 0 !important;
+  color: #101828 !important;
+  font-size: 24px !important;
+  line-height: 1.05 !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+}
+
+.navbar-center {
+  justify-content: center !important;
+}
+
+.navbar-search {
+  width: min(480px, 100%) !important;
+  height: 44px !important;
+}
+
+.navbar-right {
+  gap: 10px !important;
+}
+
+.logout-btn {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  color: #1d3345 !important;
+}
+
+.logout-btn i,
+.logout-btn .bi::before {
+  display: block !important;
+  color: currentColor !important;
+  font-family: "bootstrap-icons" !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.logout-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(6px);
+  animation: modalBackdropIn 0.18s ease both;
+}
+
+.logout-modal {
+  width: min(430px, 100%);
+  padding: 26px;
+  border: 1px solid #e6ebf1;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.24);
+  text-align: center;
+  animation: modalPanelIn 0.22s ease both;
+}
+
+.logout-modal-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+  border-radius: 18px;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 25px;
+}
+
+.logout-modal h3 {
+  margin: 0;
+  color: #101828;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.logout-modal p {
+  margin: 10px 0 0;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.logout-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.logout-modal-actions button {
+  height: 42px;
+  border: none;
+  border-radius: 13px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.logout-modal-cancel {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.logout-modal-confirm {
+  background: #be123c;
+  color: #ffffff;
+}
+
+.logout-modal-cancel:hover {
+  background: #e2e8f0;
+}
+
+.logout-modal-confirm:hover {
+  background: #9f1239;
+}
+
+@media (max-width: 1180px) {
+  .navbar-custom {
+    grid-template-columns: minmax(220px, 1fr) auto !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .navbar-page-title {
+    font-size: 21px !important;
+  }
+
+  .logout-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .logout-modal-actions button {
+    width: 100%;
+  }
+}
+
