@@ -2234,7 +2234,7 @@ td .btn-delete {
 
 .table-actions .btn-edit::after,
 td .btn-edit::after {
-  content: "Sua";
+  content: "S\1EED a";
   color: #ffffff;
   font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
   font-size: 14px;
@@ -2244,7 +2244,7 @@ td .btn-edit::after {
 
 .table-actions .btn-delete::after,
 td .btn-delete::after {
-  content: "Xoa";
+  content: "X\00F3 a";
   color: #ffffff;
   font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
   font-size: 14px;

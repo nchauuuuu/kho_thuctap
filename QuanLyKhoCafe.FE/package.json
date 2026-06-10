@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --open",
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/dev-open.ps1",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
