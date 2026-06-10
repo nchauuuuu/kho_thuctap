@@ -23,32 +23,31 @@ function Sidebar() {
   const canPhaChe = isQuanLyTiem || isNhanVienKho || isNhanVienPhaChe;
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="sidebar-logo">
+    <aside className="admin-sidebar">
+      <div className="admin-sidebar-brand">
+        <div className="admin-sidebar-mark">
           <i className="bi bi-cup-hot-fill"></i>
         </div>
-
         <div>
           <h2>Kho Cafe</h2>
-          <p>Quản lý kho</p>
+          <p>Inventory System</p>
         </div>
       </div>
 
-      <nav className="sidebar-menu">
+      <nav className="admin-sidebar-menu">
         {isQuanLyTiem && (
-          <div className="sidebar-section">
-            <div className="sidebar-group-title">Tổng quan</div>
+          <section>
+            <span className="admin-menu-label">Tổng quan</span>
             <NavLink to="/admin/dashboard">
               <i className="bi bi-grid-1x2"></i>
               <span>Tổng quan</span>
             </NavLink>
-          </div>
+          </section>
         )}
 
         {canKho && (
-          <div className="sidebar-section">
-            <div className="sidebar-group-title">Danh mục kho</div>
+          <section>
+            <span className="admin-menu-label">Danh mục kho</span>
             <NavLink to="/admin/nguyen-vat-lieu">
               <i className="bi bi-box-seam"></i>
               <span>Nguyên vật liệu</span>
@@ -60,72 +59,67 @@ function Sidebar() {
                   <i className="bi bi-tags"></i>
                   <span>Nhóm nguyên liệu</span>
                 </NavLink>
-
                 <NavLink to="/admin/don-vi-tinh">
                   <i className="bi bi-rulers"></i>
                   <span>Đơn vị tính</span>
                 </NavLink>
-
                 <NavLink to="/admin/nha-cung-cap">
                   <i className="bi bi-truck"></i>
                   <span>Nhà cung cấp</span>
                 </NavLink>
               </>
             )}
-          </div>
+          </section>
         )}
 
         {(canKho || canPhaChe) && (
-          <div className="sidebar-section">
-            <div className="sidebar-group-title">Nghiệp vụ</div>
+          <section>
+            <span className="admin-menu-label">Nghiệp vụ</span>
             {canKho && (
               <NavLink to="/admin/phieu-nhap-kho">
                 <i className="bi bi-box-arrow-in-down"></i>
                 <span>Phiếu nhập</span>
               </NavLink>
             )}
-
             {canPhaChe && (
               <NavLink to="/admin/yeu-cau-xuat-kho">
                 <i className="bi bi-clipboard-check"></i>
                 <span>Yêu cầu xuất</span>
               </NavLink>
             )}
-
             {canKho && (
               <>
                 <NavLink to="/admin/phieu-xuat-kho">
                   <i className="bi bi-box-arrow-up"></i>
                   <span>Phiếu xuất</span>
                 </NavLink>
-
                 <NavLink to="/admin/kiem-ke-kho">
                   <i className="bi bi-clipboard-data"></i>
                   <span>Kiểm kê</span>
                 </NavLink>
               </>
             )}
-          </div>
+          </section>
         )}
 
         {canKho && (
-          <div className="sidebar-section">
-            <div className="sidebar-group-title">Báo cáo</div>
+          <section>
+            <span className="admin-menu-label">Báo cáo</span>
             <NavLink to="/admin/bao-cao-xuat-nhap-ton">
               <i className="bi bi-bar-chart-line"></i>
               <span>Xuất nhập tồn</span>
             </NavLink>
-          </div>
+          </section>
         )}
 
         {isQuanLyTiem && (
-          <div className="sidebar-section">
-            <div className="sidebar-group-title">Hệ thống</div>
+          <section>
+            <span className="admin-menu-label">Hệ thống</span>
             <NavLink to="/admin/nguoi-dung">
               <i className="bi bi-people"></i>
               <span>Người dùng</span>
             </NavLink>
-          </div>
+          </section>
         )}
       </nav>
     </aside>

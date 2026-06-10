@@ -2,6 +2,72 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { showToast } from "./Toast";
 
+const pageMeta = {
+  "/admin/dashboard": {
+    title: "Tổng quan hệ thống",
+    section: "Tổng quan",
+    hint: "Theo dõi nhanh tình trạng kho",
+  },
+  "/admin/nguyen-vat-lieu": {
+    title: "Nguyên vật liệu",
+    section: "Danh mục kho",
+    hint: "Quản lý nguyên vật liệu",
+  },
+  "/admin/nhom-nguyen-vat-lieu": {
+    title: "Nhóm nguyên vật liệu",
+    section: "Danh mục kho",
+    hint: "Phân loại nguyên vật liệu",
+  },
+  "/admin/don-vi-tinh": {
+    title: "Đơn vị tính",
+    section: "Danh mục kho",
+    hint: "Chuẩn hóa đơn vị",
+  },
+  "/admin/nha-cung-cap": {
+    title: "Nhà cung cấp",
+    section: "Danh mục kho",
+    hint: "Thông tin đối tác cung ứng",
+  },
+  "/admin/phieu-nhap-kho": {
+    title: "Phiếu nhập kho",
+    section: "Nghiệp vụ kho",
+    hint: "Ghi nhận nhập kho",
+  },
+  "/admin/yeu-cau-xuat-kho": {
+    title: "Yêu cầu xuất kho",
+    section: "Nghiệp vụ kho",
+    hint: "Tiếp nhận yêu cầu xuất",
+  },
+  "/admin/phieu-xuat-kho": {
+    title: "Phiếu xuất kho",
+    section: "Nghiệp vụ kho",
+    hint: "Theo dõi xuất kho",
+  },
+  "/admin/kiem-ke-kho": {
+    title: "Kiểm kê kho",
+    section: "Nghiệp vụ kho",
+    hint: "Đối soát tồn thực tế",
+  },
+  "/admin/bao-cao-xuat-nhap-ton": {
+    title: "Báo cáo tồn kho",
+    section: "Báo cáo",
+    hint: "Tổng hợp xuất nhập tồn",
+  },
+  "/admin/nguoi-dung": {
+    title: "Người dùng",
+    section: "Hệ thống",
+    hint: "Phân quyền tài khoản",
+  },
+};
+
+function normalizeRole(role) {
+  return String(role || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "");
+}
+
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,6 +87,11 @@ function Navbar() {
   };
 
   const authUser = getAuthUser();
+  const meta = pageMeta[location.pathname] || {
+    title: "Quản lý kho Cafe",
+    section: "Kho Cafe",
+    hint: "Vận hành hệ thống kho",
+  };
 
   const hoTen =
     localStorage.getItem("hoTen") ||
@@ -34,33 +105,12 @@ function Navbar() {
     "Chưa có vai trò";
 
   const getRoleLabel = (role) => {
-    const normalized = String(role || "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, "");
-
+    const normalized = normalizeRole(role);
     if (normalized === "quanlytiem") return "Quản lý tiệm";
     if (normalized === "nhanvienkho") return "Nhân viên kho";
     if (normalized === "nhanvienphache") return "Nhân viên pha chế";
     return role || "Chưa có vai trò";
   };
-
-  const pageTitleMap = {
-    "/admin/dashboard": "Tổng quan hệ thống",
-    "/admin/nguyen-vat-lieu": "Nguyên vật liệu",
-    "/admin/nhom-nguyen-vat-lieu": "Nhóm nguyên vật liệu",
-    "/admin/don-vi-tinh": "Đơn vị tính",
-    "/admin/nha-cung-cap": "Nhà cung cấp",
-    "/admin/phieu-nhap-kho": "Phiếu nhập kho",
-    "/admin/yeu-cau-xuat-kho": "Yêu cầu xuất kho",
-    "/admin/phieu-xuat-kho": "Phiếu xuất kho",
-    "/admin/kiem-ke-kho": "Kiểm kê kho",
-    "/admin/bao-cao-xuat-nhap-ton": "Báo cáo tồn kho",
-    "/admin/nguoi-dung": "Người dùng",
-  };
-
-  const pageTitle = pageTitleMap[location.pathname] || "Quản lý kho Cafe";
 
   const handleLogout = () => {
     localStorage.clear();
@@ -70,48 +120,43 @@ function Navbar() {
 
   return (
     <>
-      <header className="navbar-custom">
-        <div className="navbar-left">
-          <div className="navbar-breadcrumb">
-            <i className="bi bi-house-door"></i>
+      <header className="admin-topbar">
+        <div className="admin-title-block">
+          <div className="admin-breadcrumb">
             <span>Kho Cafe</span>
             <i className="bi bi-chevron-right"></i>
-            <b>{pageTitle}</b>
+            <b>{meta.section}</b>
           </div>
 
-          <h1 className="navbar-page-title">{pageTitle}</h1>
+          <h1>{meta.title}</h1>
+          <p>{meta.hint}</p>
         </div>
 
-        <div className="navbar-center" aria-hidden="true">
-          <div className="navbar-search">
-            <i className="bi bi-search"></i>
-            <span>Tìm nguyên vật liệu, phiếu kho...</span>
-          </div>
+        <div className="admin-search">
+          <i className="bi bi-search"></i>
+          <span>Tìm nguyên vật liệu, phiếu kho, nhà cung cấp...</span>
+        </div>
 
-          <div className="navbar-status">
+        <div className="admin-actions">
+          <div className="admin-status">
             <i className="bi bi-circle-fill"></i>
-            Hệ thống sẵn sàng
+            Sẵn sàng
           </div>
-        </div>
 
-        <div className="navbar-right">
-          <div className="navbar-user">
-            <div className="navbar-avatar">
-              {String(hoTen || "U").charAt(0).toUpperCase()}
-            </div>
-
-            <div className="navbar-user-info">
-              <span>{hoTen}</span>
+          <div className="admin-user-card">
+            <div className="admin-avatar">{String(hoTen || "U").charAt(0).toUpperCase()}</div>
+            <div>
+              <strong>{hoTen}</strong>
               <small>{getRoleLabel(tenVaiTro)}</small>
             </div>
           </div>
 
           <button
             type="button"
-            className="logout-btn"
+            className="admin-logout-button"
             onClick={() => setShowLogoutModal(true)}
-            title="Đăng xuất"
             aria-label="Đăng xuất"
+            title="Đăng xuất"
           >
             <i className="bi bi-box-arrow-right"></i>
           </button>
@@ -119,27 +164,19 @@ function Navbar() {
       </header>
 
       {showLogoutModal && (
-        <div className="logout-modal-backdrop" role="dialog" aria-modal="true">
-          <div className="logout-modal">
-            <div className="logout-modal-icon">
+        <div className="admin-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="admin-logout-modal">
+            <div className="admin-logout-icon">
               <i className="bi bi-box-arrow-right"></i>
             </div>
+            <h3>Đăng xuất tài khoản?</h3>
+            <p>Bạn sẽ quay về màn hình đăng nhập và phiên làm việc hiện tại sẽ kết thúc.</p>
 
-            <div>
-              <h3>Đăng xuất tài khoản?</h3>
-              <p>Bạn sẽ quay về màn hình đăng nhập và phiên làm việc hiện tại sẽ kết thúc.</p>
-            </div>
-
-            <div className="logout-modal-actions">
-              <button
-                type="button"
-                className="logout-modal-cancel"
-                onClick={() => setShowLogoutModal(false)}
-              >
+            <div className="admin-modal-actions">
+              <button type="button" className="btn-soft" onClick={() => setShowLogoutModal(false)}>
                 Hủy
               </button>
-
-              <button type="button" className="logout-modal-confirm" onClick={handleLogout}>
+              <button type="button" className="btn-danger-solid" onClick={handleLogout}>
                 Đăng xuất
               </button>
             </div>
