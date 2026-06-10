@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { showToast } from "./Toast";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -31,15 +32,21 @@ function Navbar() {
     "Chưa có vai trò";
 
   const getRoleLabel = (role) => {
-    if (role === "QuanLyTiem") return "Quản lý tiệm";
-    if (role === "NhanVienKho") return "Nhân viên kho";
-    if (role === "NhanVienPhaChe") return "Nhân viên pha chế";
+    const normalized = String(role || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "");
+
+    if (normalized === "quanlytiem") return "Quản lý tiệm";
+    if (normalized === "nhanvienkho") return "Nhân viên kho";
+    if (normalized === "nhanvienphache") return "Nhân viên pha chế";
     return role || "Chưa có vai trò";
   };
 
   const pageTitleMap = {
     "/admin/dashboard": "Tổng quan hệ thống",
-    "/admin/nguyen-vat-lieu": "Quản lý nguyên vật liệu",
+    "/admin/nguyen-vat-lieu": "Nguyên vật liệu",
     "/admin/nhom-nguyen-vat-lieu": "Nhóm nguyên vật liệu",
     "/admin/don-vi-tinh": "Đơn vị tính",
     "/admin/nha-cung-cap": "Nhà cung cấp",
@@ -48,7 +55,7 @@ function Navbar() {
     "/admin/phieu-xuat-kho": "Phiếu xuất kho",
     "/admin/kiem-ke-kho": "Kiểm kê kho",
     "/admin/bao-cao-xuat-nhap-ton": "Báo cáo tồn kho",
-    "/admin/nguoi-dung": "Quản lý người dùng",
+    "/admin/nguoi-dung": "Người dùng",
   };
 
   const pageTitle = pageTitleMap[location.pathname] || "Quản lý kho Cafe";
@@ -58,6 +65,7 @@ function Navbar() {
     if (!confirmLogout) return;
 
     localStorage.clear();
+    showToast("Đăng xuất thành công.");
     navigate("/login", { replace: true });
   };
 
@@ -74,7 +82,7 @@ function Navbar() {
         <div>
           <h5 className="navbar-title">{pageTitle}</h5>
           <p className="navbar-subtitle">
-            Theo dõi và quản lý nghiệp vụ kho nguyên vật liệu
+            Theo dõi và xử lý nghiệp vụ kho nguyên vật liệu
           </p>
         </div>
       </div>
@@ -91,7 +99,7 @@ function Navbar() {
 
         <button type="button" className="logout-btn" onClick={handleLogout}>
           <i className="bi bi-box-arrow-right"></i>
-          Đăng xuất
+          <span>Đăng xuất</span>
         </button>
       </div>
     </header>

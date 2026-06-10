@@ -31,26 +31,24 @@ function Sidebar() {
 
         <div>
           <h2>Kho Cafe</h2>
-          <p>Inventory System</p>
+          <p>Quản lý kho</p>
         </div>
       </div>
 
       <nav className="sidebar-menu">
         {isQuanLyTiem && (
-          <>
+          <div className="sidebar-section">
             <div className="sidebar-group-title">Tổng quan</div>
-
             <NavLink to="/admin/dashboard">
-              <i className="bi bi-speedometer2"></i>
+              <i className="bi bi-grid-1x2"></i>
               <span>Tổng quan</span>
             </NavLink>
-          </>
+          </div>
         )}
 
         {canKho && (
-          <>
+          <div className="sidebar-section">
             <div className="sidebar-group-title">Danh mục kho</div>
-
             <NavLink to="/admin/nguyen-vat-lieu">
               <i className="bi bi-box-seam"></i>
               <span>Nguyên vật liệu</span>
@@ -60,7 +58,7 @@ function Sidebar() {
               <>
                 <NavLink to="/admin/nhom-nguyen-vat-lieu">
                   <i className="bi bi-tags"></i>
-                  <span>Nhóm nguyên vật liệu</span>
+                  <span>Nhóm nguyên liệu</span>
                 </NavLink>
 
                 <NavLink to="/admin/don-vi-tinh">
@@ -74,53 +72,60 @@ function Sidebar() {
                 </NavLink>
               </>
             )}
-
-            <div className="sidebar-group-title">Nghiệp vụ kho</div>
-
-            <NavLink to="/admin/phieu-nhap-kho">
-              <i className="bi bi-box-arrow-in-down"></i>
-              <span>Phiếu nhập kho</span>
-            </NavLink>
-          </>
+          </div>
         )}
 
-        {canPhaChe && (
-          <NavLink to="/admin/yeu-cau-xuat-kho">
-            <i className="bi bi-clipboard-check"></i>
-            <span>Yêu cầu xuất kho</span>
-          </NavLink>
+        {(canKho || canPhaChe) && (
+          <div className="sidebar-section">
+            <div className="sidebar-group-title">Nghiệp vụ</div>
+            {canKho && (
+              <NavLink to="/admin/phieu-nhap-kho">
+                <i className="bi bi-box-arrow-in-down"></i>
+                <span>Phiếu nhập</span>
+              </NavLink>
+            )}
+
+            {canPhaChe && (
+              <NavLink to="/admin/yeu-cau-xuat-kho">
+                <i className="bi bi-clipboard-check"></i>
+                <span>Yêu cầu xuất</span>
+              </NavLink>
+            )}
+
+            {canKho && (
+              <>
+                <NavLink to="/admin/phieu-xuat-kho">
+                  <i className="bi bi-box-arrow-up"></i>
+                  <span>Phiếu xuất</span>
+                </NavLink>
+
+                <NavLink to="/admin/kiem-ke-kho">
+                  <i className="bi bi-clipboard-data"></i>
+                  <span>Kiểm kê</span>
+                </NavLink>
+              </>
+            )}
+          </div>
         )}
 
         {canKho && (
-          <>
-            <NavLink to="/admin/phieu-xuat-kho">
-              <i className="bi bi-box-arrow-up"></i>
-              <span>Phiếu xuất kho</span>
-            </NavLink>
-
-            <NavLink to="/admin/kiem-ke-kho">
-              <i className="bi bi-clipboard-data"></i>
-              <span>Kiểm kê kho</span>
-            </NavLink>
-
+          <div className="sidebar-section">
             <div className="sidebar-group-title">Báo cáo</div>
-
             <NavLink to="/admin/bao-cao-xuat-nhap-ton">
               <i className="bi bi-bar-chart-line"></i>
-              <span>Báo cáo tồn kho</span>
+              <span>Xuất nhập tồn</span>
             </NavLink>
-          </>
+          </div>
         )}
 
         {isQuanLyTiem && (
-          <>
+          <div className="sidebar-section">
             <div className="sidebar-group-title">Hệ thống</div>
-
             <NavLink to="/admin/nguoi-dung">
               <i className="bi bi-people"></i>
               <span>Người dùng</span>
             </NavLink>
-          </>
+          </div>
         )}
       </nav>
     </aside>

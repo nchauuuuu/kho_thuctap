@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
+import { showToast } from "../components/Toast";
 
 function Dashboard() {
   const [loading, setLoading] = useState(false);
@@ -12,10 +13,6 @@ function Dashboard() {
   const [phieuKiemKeKho, setPhieuKiemKeKho] = useState([]);
   const [lichSuTonKho, setLichSuTonKho] = useState([]);
   const [nguoiDung, setNguoiDung] = useState([]);
-
-  useEffect(() => {
-    loadDashboard();
-  }, []);
 
   const normalizeArray = (data) => {
     if (Array.isArray(data)) return data;
@@ -38,7 +35,7 @@ function Dashboard() {
     return [];
   };
 
-  const loadDashboard = async () => {
+  const loadDashboard = async (showSuccessToast = false) => {
     try {
       setLoading(true);
 
@@ -59,37 +56,38 @@ function Dashboard() {
       setPhieuKiemKeKho(pkk);
       setLichSuTonKho(lstk);
       setNguoiDung(nd);
+
+      if (showSuccessToast) {
+        showToast("Đã làm mới dữ liệu dashboard.");
+      }
     } catch (error) {
       console.error("Lỗi tải dashboard:", error);
-      alert("Không tải được dữ liệu tổng quan.");
+      showToast("Không tải được dữ liệu tổng quan.", "danger");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
   const formatDate = (value) => {
     if (!value) return "-";
-
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) return "-";
-
     return date.toLocaleDateString("vi-VN");
   };
 
   const formatDateTime = (value) => {
     if (!value) return "-";
-
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) return "-";
-
     return date.toLocaleString("vi-VN");
   };
 
   const formatNumber = (number) => {
     if (number === null || number === undefined || number === "") return "0";
-
     return Number(number).toLocaleString("vi-VN");
   };
 
@@ -153,35 +151,19 @@ function Dashboard() {
   };
 
   const getMaPhieuNhap = (item) => {
-    return (
-      item.maPhieuNhap ||
-      item.maPhieuNhapKho ||
-      `PNK-${item.phieuNhapKhoId || ""}`
-    );
+    return item.maPhieuNhap || item.maPhieuNhapKho || `PNK-${item.phieuNhapKhoId || ""}`;
   };
 
   const getMaYeuCauXuat = (item) => {
-    return (
-      item.maYeuCau ||
-      item.maYeuCauXuatKho ||
-      `YCXK-${item.yeuCauXuatKhoId || ""}`
-    );
+    return item.maYeuCau || item.maYeuCauXuatKho || `YCXK-${item.yeuCauXuatKhoId || ""}`;
   };
 
   const getMaPhieuXuat = (item) => {
-    return (
-      item.maPhieuXuat ||
-      item.maPhieuXuatKho ||
-      `PXK-${item.phieuXuatKhoId || ""}`
-    );
+    return item.maPhieuXuat || item.maPhieuXuatKho || `PXK-${item.phieuXuatKhoId || ""}`;
   };
 
   const getMaPhieuKiemKe = (item) => {
-    return (
-      item.maPhieuKiemKe ||
-      item.maPhieuKiemKeKho ||
-      `PKK-${item.phieuKiemKeKhoId || ""}`
-    );
+    return item.maPhieuKiemKe || item.maPhieuKiemKeKho || `PKK-${item.phieuKiemKeKhoId || ""}`;
   };
 
   const tonThapList = useMemo(() => {
@@ -272,7 +254,7 @@ function Dashboard() {
   const lichSuGanDay = useMemo(() => {
     return [...lichSuTonKho]
       .sort((a, b) => new Date(b.thoiGian || 0) - new Date(a.thoiGian || 0))
-      .slice(0, 8);
+      .slice(0, 6);
   }, [lichSuTonKho]);
 
   const stats = [
@@ -310,6 +292,33 @@ function Dashboard() {
     },
   ];
 
+  const miniStats = [
+    {
+      label: "Yêu cầu xuất chờ xử lý",
+      value: yeuCauXuatChoXuLy.length,
+      link: "/admin/yeu-cau-xuat-kho",
+      action: "Xem chi tiết",
+    },
+    {
+      label: "Nguyên vật liệu hết hàng",
+      value: hetHangList.length,
+      link: "/admin/nguyen-vat-lieu",
+      action: "Kiểm tra",
+    },
+    {
+      label: "Lịch sử tồn kho",
+      value: lichSuTonKho.length,
+      link: "/admin/bao-cao-xuat-nhap-ton",
+      action: "Theo dõi",
+    },
+    {
+      label: "Người dùng",
+      value: nguoiDung.length,
+      link: "/admin/nguoi-dung",
+      action: "Quản lý",
+    },
+  ];
+
   return (
     <div className="dashboard-v2">
       <div className="dash-hero">
@@ -317,11 +326,16 @@ function Dashboard() {
           <span className="dash-label">Kho Cafe</span>
           <h1>Trang tổng quan</h1>
           <p>
-            Theo dõi nhanh tình trạng tồn kho, phiếu nhập, phiếu xuất và kiểm kê.
+            Theo dõi nhanh tồn kho, phiếu nhập, phiếu xuất và các cảnh báo cần xử lý.
           </p>
         </div>
 
-        <button type="button" onClick={loadDashboard} className="dash-refresh">
+        <button
+          type="button"
+          onClick={() => loadDashboard(true)}
+          className="dash-refresh"
+          disabled={loading}
+        >
           <i className="bi bi-arrow-clockwise"></i>
           {loading ? "Đang tải..." : "Làm mới"}
         </button>
@@ -344,29 +358,13 @@ function Dashboard() {
       </div>
 
       <div className="dash-mini-grid">
-        <div className="dash-mini-card">
-          <p>Yêu cầu xuất chờ xử lý</p>
-          <h3>{yeuCauXuatChoXuLy.length}</h3>
-          <Link to="/admin/yeu-cau-xuat-kho">Xem chi tiết</Link>
-        </div>
-
-        <div className="dash-mini-card">
-          <p>Nguyên vật liệu hết hàng</p>
-          <h3>{hetHangList.length}</h3>
-          <Link to="/admin/nguyen-vat-lieu">Kiểm tra</Link>
-        </div>
-
-        <div className="dash-mini-card">
-          <p>Lịch sử tồn kho</p>
-          <h3>{lichSuTonKho.length}</h3>
-          <Link to="/admin/lich-su-ton-kho">Theo dõi</Link>
-        </div>
-
-        <div className="dash-mini-card">
-          <p>Người dùng</p>
-          <h3>{nguoiDung.length}</h3>
-          <Link to="/admin/nguoi-dung">Quản lý</Link>
-        </div>
+        {miniStats.map((item) => (
+          <div className="dash-mini-card" key={item.label}>
+            <p>{item.label}</p>
+            <h3>{item.value}</h3>
+            <Link to={item.link}>{item.action}</Link>
+          </div>
+        ))}
       </div>
 
       <div className="dash-content-grid">
@@ -427,8 +425,7 @@ function Dashboard() {
                   <div>
                     <strong>{item.tenNguyenVatLieu}</strong>
                     <span>
-                      {item.maNguyenVatLieu || "-"} |{" "}
-                      {getStatusLabel(item.trangThaiTonKho)}
+                      {item.maNguyenVatLieu || "-"} | {getStatusLabel(item.trangThaiTonKho)}
                     </span>
                   </div>
 
@@ -452,11 +449,11 @@ function Dashboard() {
             <p>Các biến động nhập, xuất và kiểm kê mới nhất</p>
           </div>
 
-          <Link to="/admin/lich-su-ton-kho">Xem tất cả</Link>
+          <Link to="/admin/bao-cao-xuat-nhap-ton">Xem báo cáo</Link>
         </div>
 
         <div className="table-wrapper">
-          <table className="data-table" style={{ minWidth: "1000px" }}>
+          <table className="data-table dash-history-table">
             <thead>
               <tr>
                 <th>Thời gian</th>
@@ -493,37 +490,6 @@ function Dashboard() {
               )}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <div className="dash-section">
-        <div className="dash-section-title">
-          <div>
-            <h3>Luồng nghiệp vụ chính</h3>
-            <p>Các chức năng thường dùng trong quản lý kho</p>
-          </div>
-        </div>
-
-        <div className="dash-flow-grid">
-          <Link to="/admin/phieu-nhap-kho">
-            <i className="bi bi-1-circle"></i>
-            <span>Nhập kho</span>
-          </Link>
-
-          <Link to="/admin/yeu-cau-xuat-kho">
-            <i className="bi bi-2-circle"></i>
-            <span>Yêu cầu xuất</span>
-          </Link>
-
-          <Link to="/admin/phieu-xuat-kho">
-            <i className="bi bi-3-circle"></i>
-            <span>Xuất kho</span>
-          </Link>
-
-          <Link to="/admin/kiem-ke-kho">
-            <i className="bi bi-4-circle"></i>
-            <span>Kiểm kê kho</span>
-          </Link>
         </div>
       </div>
     </div>

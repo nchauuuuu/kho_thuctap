@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
+import { showToast } from "../components/Toast";
 
 function Login() {
   const navigate = useNavigate();
@@ -177,6 +178,7 @@ function Login() {
         return;
       }
 
+      showToast(`Đăng nhập thành công. Xin chào ${user.hoTen || user.email || "bạn"}!`);
       navigate(defaultPath, { replace: true });
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);
