@@ -2223,6 +2223,35 @@ td .btn-delete i {
   font-family: "bootstrap-icons" !important;
 }
 
+.table-actions .btn-edit,
+.table-actions .btn-delete,
+td .btn-edit,
+td .btn-delete {
+  position: relative !important;
+  font-size: 0 !important;
+  color: transparent !important;
+}
+
+.table-actions .btn-edit::after,
+td .btn-edit::after {
+  content: "Sua";
+  color: #ffffff;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.table-actions .btn-delete::after,
+td .btn-delete::after {
+  content: "Xoa";
+  color: #ffffff;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1;
+}
+
 /* Existing add/edit forms are rendered before tables; present them as modals. */
 .page-container > .table-card:has(> form),
 .page-container > .table-card:has(> h3 + form) {
