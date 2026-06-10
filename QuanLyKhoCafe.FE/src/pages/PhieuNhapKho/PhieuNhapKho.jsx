@@ -599,7 +599,7 @@ function PhieuNhapKho() {
                       <td>{item.ghiChu || "-"}</td>
                       <td>
                         <div className="table-actions">
-                          <button className="btn-edit" onClick={() => openView(item)}>
+                          <button className="btn-view" onClick={() => openView(item)}>
                             Xem
                           </button>
                           {canEdit(item) && (
