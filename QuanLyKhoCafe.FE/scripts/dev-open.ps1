@@ -13,4 +13,4 @@ Start-Job -ScriptBlock {
   Start-Process $targetUrl
 } -ArgumentList $url | Out-Null
 
-npx vite --host 127.0.0.1 --port $port --strictPort
+npx vite --host localhost --port $port --strictPort
