@@ -78,28 +78,34 @@ function Navbar() {
           <i className="bi bi-chevron-right"></i>
           <b>{pageTitle}</b>
         </div>
+      </div>
 
-        <div>
-          <h5 className="navbar-title">{pageTitle}</h5>
-          <p className="navbar-subtitle">
-            Theo dõi và xử lý nghiệp vụ kho nguyên vật liệu
-          </p>
+      <div className="navbar-center" aria-hidden="true">
+        <div className="navbar-search">
+          <i className="bi bi-search"></i>
+          <span>Tìm nguyên vật liệu, phiếu kho...</span>
+        </div>
+
+        <div className="navbar-status">
+          <i className="bi bi-circle-fill"></i>
+          Hệ thống sẵn sàng
         </div>
       </div>
 
-      <div className="navbar-user">
-        <div className="navbar-avatar">
-          {String(hoTen || "U").charAt(0).toUpperCase()}
+      <div className="navbar-right">
+        <div className="navbar-user">
+          <div className="navbar-avatar">
+            {String(hoTen || "U").charAt(0).toUpperCase()}
+          </div>
+
+          <div className="navbar-user-info">
+            <span>{hoTen}</span>
+            <small>{getRoleLabel(tenVaiTro)}</small>
+          </div>
         </div>
 
-        <div className="navbar-user-info">
-          <span>{hoTen}</span>
-          <small>{getRoleLabel(tenVaiTro)}</small>
-        </div>
-
-        <button type="button" className="logout-btn" onClick={handleLogout}>
+        <button type="button" className="logout-btn" onClick={handleLogout} title="Đăng xuất">
           <i className="bi bi-box-arrow-right"></i>
-          <span>Đăng xuất</span>
         </button>
       </div>
     </header>
