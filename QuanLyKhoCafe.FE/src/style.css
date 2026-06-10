@@ -2223,6 +2223,114 @@ td .btn-delete i {
   font-family: "bootstrap-icons" !important;
 }
 
+/* Existing add/edit forms are rendered before tables; present them as modals. */
+.page-container > .table-card:has(> form),
+.page-container > .table-card:has(> h3 + form) {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 3000 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 28px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow-y: auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: rgba(15, 23, 42, 0.58) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(6px);
+  animation: modalBackdropIn 0.18s ease both;
+}
+
+.page-container > .table-card:has(> form)::before,
+.page-container > .table-card:has(> h3 + form)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+.page-container > .table-card:has(> form) > h3,
+.page-container > .table-card:has(> h3 + form) > h3 {
+  width: min(720px, calc(100vw - 36px)) !important;
+  margin: 0 !important;
+  padding: 22px 24px 16px !important;
+  border-radius: 22px 22px 0 0 !important;
+  background: #ffffff !important;
+  color: #172536 !important;
+  font-size: 21px !important;
+  font-weight: 850 !important;
+  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.24);
+}
+
+.page-container > .table-card:has(> form) > form,
+.page-container > .table-card:has(> h3 + form) > form {
+  width: min(720px, calc(100vw - 36px)) !important;
+  max-height: calc(100vh - 130px) !important;
+  margin: 0 !important;
+  padding: 4px 24px 24px !important;
+  overflow-y: auto !important;
+  border: none !important;
+  border-radius: 0 0 22px 22px !important;
+  background: #ffffff !important;
+  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.24);
+  animation: modalPanelIn 0.22s ease both;
+}
+
+.page-container > .table-card:has(> form) > form label,
+.page-container > .table-card:has(> h3 + form) > form label {
+  color: #344054 !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+
+.page-container > .table-card:has(> form) > form input,
+.page-container > .table-card:has(> form) > form select,
+.page-container > .table-card:has(> form) > form textarea,
+.page-container > .table-card:has(> h3 + form) > form input,
+.page-container > .table-card:has(> h3 + form) > form select,
+.page-container > .table-card:has(> h3 + form) > form textarea {
+  min-height: 44px !important;
+  border-radius: 13px !important;
+}
+
+.page-container > .table-card:has(> form) > form > div:last-child,
+.page-container > .table-card:has(> h3 + form) > form > div:last-child {
+  position: sticky;
+  bottom: -24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 18px -24px -24px !important;
+  padding: 16px 24px;
+  border-top: 1px solid #e6ebf1;
+  background: #ffffff;
+}
+
+@keyframes modalBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes toastIn {
   from {
     opacity: 0;
