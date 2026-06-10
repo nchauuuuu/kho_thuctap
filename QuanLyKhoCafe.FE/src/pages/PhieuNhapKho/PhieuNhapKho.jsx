@@ -6,6 +6,7 @@ const emptyDetail = {
   nguyenVatLieuId: "",
   soLuongNhap: 1,
   donGia: 0,
+  tinhTrangHang: "Dat",
   ghiChu: "",
 };
 
@@ -13,8 +14,27 @@ const emptyForm = {
   nhaCungCapId: "",
   nguoiLapId: "",
   ngayNhap: new Date().toISOString().slice(0, 10),
+  soChungTu: "",
+  lyDoNhap: "Nhà cung cấp giao hàng",
   ghiChu: "",
 };
+
+const lyDoNhapOptions = [
+  "Nhập bổ sung tồn kho",
+  "Nhập đầu kỳ/đầu tuần",
+  "Nhà cung cấp giao hàng",
+  "Nhập bù hàng thiếu",
+  "Khác",
+];
+
+const tinhTrangHangOptions = [
+  { value: "Dat", label: "Đạt" },
+  { value: "BaoBiRachNhe", label: "Bao bì rách nhẹ" },
+  { value: "GiaoThieu", label: "Giao thiếu" },
+  { value: "SaiLoai", label: "Sai loại" },
+  { value: "GanHetHan", label: "Gần hết hạn" },
+  { value: "Khac", label: "Khác" },
+];
 
 function normalizeRole(role) {
   return String(role || "")
@@ -72,6 +92,14 @@ function PhieuNhapKho() {
   const isQuanLyTiem = role === "quanlytiem";
   const isNhanVienKho = role === "nhanvienkho";
   const canCreate = isQuanLyTiem || isNhanVienKho;
+
+  const activeNguyenVatLieu = useMemo(
+    () =>
+      dsNguyenVatLieu.filter(
+        (item) => (item.trangThaiNguyenVatLieu || item.trangThai || "DangSuDung") !== "NgungSuDung"
+      ),
+    [dsNguyenVatLieu]
+  );
 
   useEffect(() => {
     loadAllData();
@@ -136,6 +164,17 @@ function PhieuNhapKho() {
     return `${Number(money || 0).toLocaleString("vi-VN")} đ`;
   };
 
+  const getTinhTrangLabel = (value) => {
+    return tinhTrangHangOptions.find((item) => item.value === value)?.label || value || "-";
+  };
+
+  const getTenDonVi = (item) =>
+    item?.tenDonVi ||
+    item?.tenDonViTinh ||
+    item?.donViTinh?.tenDonVi ||
+    item?.donViTinh?.tenDonViTinh ||
+    "";
+
   const formatStatus = (status) => {
     const map = {
       ChoDuyet: "Chờ duyệt",
@@ -186,8 +225,10 @@ function PhieuNhapKho() {
           ct.maNguyenVatLieu || nvl?.maNguyenVatLieu || `NVL${nguyenVatLieuId}`,
         tenNguyenVatLieu:
           ct.tenNguyenVatLieu || nvl?.tenNguyenVatLieu || "Không có",
+        tenDonVi: ct.tenDonVi || getTenDonVi(nvl),
         soLuongNhap: Number(ct.soLuongNhap || 0),
         donGia: Number(ct.donGiaNhap ?? ct.donGia ?? 0),
+        tinhTrangHang: "Dat",
         ghiChu: ct.ghiChu || "",
       };
     });
@@ -212,6 +253,8 @@ function PhieuNhapKho() {
       nhaCungCapId: item.nhaCungCapId || "",
       nguoiLapId: item.nguoiLapId || "",
       ngayNhap: toInputDate(item.ngayNhap),
+      soChungTu: "",
+      lyDoNhap: "Nhà cung cấp giao hàng",
       ghiChu: item.ghiChu || "",
     });
     setChiTietPhieuNhap(mapChiTiet(item));
@@ -224,6 +267,8 @@ function PhieuNhapKho() {
       nhaCungCapId: item.nhaCungCapId || "",
       nguoiLapId: item.nguoiLapId || "",
       ngayNhap: toInputDate(item.ngayNhap),
+      soChungTu: "",
+      lyDoNhap: "Nhà cung cấp giao hàng",
       ghiChu: item.ghiChu || "",
     });
     setChiTietPhieuNhap(mapChiTiet(item));
@@ -270,8 +315,10 @@ function PhieuNhapKho() {
         nguyenVatLieuId,
         maNguyenVatLieu: nvl?.maNguyenVatLieu || `NVL${nguyenVatLieuId}`,
         tenNguyenVatLieu: nvl?.tenNguyenVatLieu || "Không có",
+        tenDonVi: getTenDonVi(nvl),
         soLuongNhap: Number(detailInput.soLuongNhap),
         donGia: Number(detailInput.donGia),
+        tinhTrangHang: detailInput.tinhTrangHang,
         ghiChu: detailInput.ghiChu || "",
       },
     ]);
@@ -282,24 +329,50 @@ function PhieuNhapKho() {
     setChiTietPhieuNhap((prev) => prev.filter((item) => item.tempId !== tempId));
   };
 
-  const buildPayload = () => ({
-    nhaCungCapId: Number(formData.nhaCungCapId),
-    nguoiLapId: Number(formData.nguoiLapId),
-    ngayNhap: formData.ngayNhap,
-    ghiChu: formData.ghiChu || "",
-    chiTiet: chiTietPhieuNhap.map((item) => ({
-      nguyenVatLieuId: Number(item.nguyenVatLieuId),
-      soLuongNhap: Number(item.soLuongNhap),
-      donGia: Number(item.donGia),
-      ghiChu: item.ghiChu || "",
-    })),
-  });
+  const buildPayload = () => {
+    const ghiChuChung = [
+      formData.lyDoNhap ? `Lý do nhập: ${formData.lyDoNhap}` : "",
+      formData.soChungTu ? `Số chứng từ: ${formData.soChungTu}` : "",
+      formData.ghiChu ? `Ghi chú: ${formData.ghiChu}` : "",
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
+    return {
+      nhaCungCapId: Number(formData.nhaCungCapId),
+      nguoiLapId: Number(formData.nguoiLapId),
+      ngayNhap: formData.ngayNhap,
+      ghiChu: ghiChuChung,
+      chiTiet: chiTietPhieuNhap.map((item) => ({
+        nguyenVatLieuId: Number(item.nguyenVatLieuId),
+        soLuongNhap: Number(item.soLuongNhap),
+        donGia: Number(item.donGia),
+        ghiChu: [
+          item.tinhTrangHang ? `Tình trạng: ${getTinhTrangLabel(item.tinhTrangHang)}` : "",
+          item.ghiChu ? `Ghi chú: ${item.ghiChu}` : "",
+        ]
+          .filter(Boolean)
+          .join(" | "),
+      })),
+    };
+  };
 
   const validateBeforeSubmit = () => {
     if (!formData.nhaCungCapId) return "Vui lòng chọn nhà cung cấp.";
     if (!formData.nguoiLapId) return "Vui lòng chọn người lập phiếu.";
     if (!formData.ngayNhap) return "Ngày nhập không được rỗng.";
     if (chiTietPhieuNhap.length === 0) return "Phiếu nhập phải có ít nhất một nguyên vật liệu.";
+    const seenIds = new Set();
+    for (const item of chiTietPhieuNhap) {
+      if (!item.nguyenVatLieuId) return "Vui long chon nguyen vat lieu.";
+      if (Number(item.soLuongNhap) <= 0) return "So luong nhap phai lon hon 0.";
+      if (Number(item.donGia) < 0) return "Don gia nhap khong duoc am.";
+
+      const nguyenVatLieuId = Number(item.nguyenVatLieuId);
+      if (seenIds.has(nguyenVatLieuId)) return "Nguyen vat lieu bi trung trong phieu nhap.";
+      seenIds.add(nguyenVatLieuId);
+    }
+
     return null;
   };
 
@@ -382,7 +455,7 @@ function PhieuNhapKho() {
       </div>
 
       {modalMode && (
-        <div className="table-card" style={{ marginBottom: "20px" }}>
+        <div className="table-card receipt-modal-card" style={{ marginBottom: "20px" }}>
           <h3>
             {modalMode === "view"
               ? "Chi tiết phiếu nhập kho"
@@ -390,67 +463,113 @@ function PhieuNhapKho() {
                 ? "Sửa phiếu nhập kho"
                 : "Thêm phiếu nhập kho"}
           </h3>
+          <p className="receipt-modal-description">
+            Ghi nhận nguyên vật liệu được nhà cung cấp giao vào kho.
+          </p>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-grid">
-              <div className="form-group">
-                <label>Nhà cung cấp</label>
-                <select
-                  value={formData.nhaCungCapId}
-                  onChange={(e) => setFormData({ ...formData, nhaCungCapId: e.target.value })}
-                  disabled={isReadOnly}
-                >
-                  <option value="">-- Chọn nhà cung cấp --</option>
-                  {dsNhaCungCap.map((item) => (
-                    <option key={item.nhaCungCapId} value={item.nhaCungCapId}>
-                      {item.tenNhaCungCap}
-                    </option>
-                  ))}
-                </select>
+          <form onSubmit={handleSubmit} className="receipt-form">
+            <section className="receipt-section">
+              <div className="receipt-section-heading">
+                <div>
+                  <span>01</span>
+                  <h4>Thông tin phiếu nhập</h4>
+                </div>
+                <p>Thông tin chung của chứng từ nhập kho.</p>
               </div>
 
-              <div className="form-group">
-                <label>Người lập</label>
-                <select
-                  value={formData.nguoiLapId}
-                  onChange={(e) => setFormData({ ...formData, nguoiLapId: e.target.value })}
-                  disabled={isReadOnly || !isQuanLyTiem}
-                >
-                  <option value="">-- Chọn người lập --</option>
-                  {dsNguoiDung.map((item) => (
-                    <option key={item.nguoiDungId} value={item.nguoiDungId}>
-                      {item.hoTen || item.email}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <div className="receipt-info-grid">
+                <div className="form-group">
+                  <label>Nhà cung cấp</label>
+                  <select
+                    value={formData.nhaCungCapId}
+                    onChange={(e) => setFormData({ ...formData, nhaCungCapId: e.target.value })}
+                    disabled={isReadOnly}
+                  >
+                    <option value="">-- Chọn nhà cung cấp --</option>
+                    {dsNhaCungCap.map((item) => (
+                      <option key={item.nhaCungCapId} value={item.nhaCungCapId}>
+                        {item.tenNhaCungCap}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="form-group">
-                <label>Ngày nhập</label>
-                <input
-                  type="date"
-                  value={formData.ngayNhap}
-                  onChange={(e) => setFormData({ ...formData, ngayNhap: e.target.value })}
-                  disabled={isReadOnly}
-                />
-              </div>
+                <div className="form-group">
+                  <label>Người lập</label>
+                  <select
+                    value={formData.nguoiLapId}
+                    onChange={(e) => setFormData({ ...formData, nguoiLapId: e.target.value })}
+                    disabled={isReadOnly || !isQuanLyTiem}
+                  >
+                    <option value="">-- Chọn người lập --</option>
+                    {dsNguoiDung.map((item) => (
+                      <option key={item.nguoiDungId} value={item.nguoiDungId}>
+                        {item.hoTen || item.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="form-group">
-                <label>Ghi chú</label>
-                <input
-                  type="text"
-                  value={formData.ghiChu}
-                  onChange={(e) => setFormData({ ...formData, ghiChu: e.target.value })}
-                  placeholder="Nhập ghi chú"
-                  disabled={isReadOnly}
-                />
+                <div className="form-group">
+                  <label>Ngày nhập</label>
+                  <input
+                    type="date"
+                    value={formData.ngayNhap}
+                    onChange={(e) => setFormData({ ...formData, ngayNhap: e.target.value })}
+                    disabled={isReadOnly}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Số chứng từ / hóa đơn</label>
+                  <input
+                    type="text"
+                    value={formData.soChungTu}
+                    onChange={(e) => setFormData({ ...formData, soChungTu: e.target.value })}
+                    placeholder="Không bắt buộc"
+                    disabled={isReadOnly}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Lý do nhập</label>
+                  <select
+                    value={formData.lyDoNhap}
+                    onChange={(e) => setFormData({ ...formData, lyDoNhap: e.target.value })}
+                    disabled={isReadOnly}
+                  >
+                    {lyDoNhapOptions.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Ghi chú</label>
+                  <input
+                    type="text"
+                    value={formData.ghiChu}
+                    onChange={(e) => setFormData({ ...formData, ghiChu: e.target.value })}
+                    placeholder="Không bắt buộc"
+                    disabled={isReadOnly}
+                  />
+                </div>
               </div>
-            </div>
+            </section>
 
             {!isReadOnly && (
-              <div className="form-card">
-                <h3>Thêm nguyên vật liệu</h3>
-                <div className="form-grid detail-form-grid">
+              <section className="receipt-section">
+                <div className="receipt-section-heading">
+                  <div>
+                    <span>02</span>
+                    <h4>Thêm nguyên vật liệu nhập kho</h4>
+                  </div>
+                  <p>Chọn nguyên vật liệu, số lượng, đơn giá và tình trạng hàng.</p>
+                </div>
+
+                <div className="receipt-line-grid">
                   <div className="form-group">
                     <label>Nguyên vật liệu</label>
                     <select
@@ -458,7 +577,7 @@ function PhieuNhapKho() {
                       onChange={(e) => setDetailInput({ ...detailInput, nguyenVatLieuId: e.target.value })}
                     >
                       <option value="">-- Chọn nguyên vật liệu --</option>
-                      {dsNguyenVatLieu.map((item) => (
+                      {activeNguyenVatLieu.map((item) => (
                         <option key={item.nguyenVatLieuId} value={item.nguyenVatLieuId}>
                           {item.maNguyenVatLieu} - {item.tenNguyenVatLieu}
                         </option>
@@ -467,7 +586,22 @@ function PhieuNhapKho() {
                   </div>
 
                   <div className="form-group">
-                    <label>Số lượng</label>
+                    <label>Đơn vị tính</label>
+                    <input
+                      value={
+                        getTenDonVi(
+                          dsNguyenVatLieu.find(
+                            (item) => item.nguyenVatLieuId === Number(detailInput.nguyenVatLieuId)
+                          )
+                        ) ||
+                        "Tự hiển thị"
+                      }
+                      disabled
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Số lượng nhập</label>
                     <input
                       type="number"
                       min="0"
@@ -487,60 +621,153 @@ function PhieuNhapKho() {
                       onChange={(e) => setDetailInput({ ...detailInput, donGia: e.target.value })}
                     />
                   </div>
+
+                  <div className="form-group">
+                    <label>Thành tiền</label>
+                    <input
+                      value={formatMoney(Number(detailInput.soLuongNhap || 0) * Number(detailInput.donGia || 0))}
+                      disabled
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Tình trạng hàng</label>
+                    <select
+                      value={detailInput.tinhTrangHang}
+                      onChange={(e) => setDetailInput({ ...detailInput, tinhTrangHang: e.target.value })}
+                    >
+                      {tinhTrangHangOptions.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group receipt-line-note">
+                    <label>Ghi chú dòng hàng</label>
+                    <input
+                      type="text"
+                      value={detailInput.ghiChu}
+                      onChange={(e) => setDetailInput({ ...detailInput, ghiChu: e.target.value })}
+                      placeholder="Ghi chú chất lượng hoặc chênh lệch"
+                    />
+                  </div>
                 </div>
 
                 <button type="button" className="btn-add" onClick={handleAddChiTiet}>
                   Thêm dòng
                 </button>
-              </div>
+              </section>
             )}
 
-            <div className="table-wrapper">
-              <table className="data-table" style={{ minWidth: "900px" }}>
-                <thead>
-                  <tr>
-                    <th>Mã NVL</th>
-                    <th>Tên nguyên vật liệu</th>
-                    <th>Số lượng</th>
-                    <th>Đơn giá</th>
-                    <th>Thành tiền</th>
-                    <th>Ghi chú</th>
-                    {!isReadOnly && <th>Thao tác</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {chiTietPhieuNhap.length === 0 ? (
-                    <tr>
-                      <td colSpan={isReadOnly ? 6 : 7} className="text-center">
-                        Chưa có nguyên vật liệu trong phiếu
-                      </td>
-                    </tr>
-                  ) : (
-                    chiTietPhieuNhap.map((item) => (
-                      <tr key={item.tempId}>
-                        <td>{item.maNguyenVatLieu}</td>
-                        <td>{item.tenNguyenVatLieu}</td>
-                        <td>{item.soLuongNhap}</td>
-                        <td>{formatMoney(item.donGia)}</td>
-                        <td>{formatMoney(Number(item.soLuongNhap) * Number(item.donGia))}</td>
-                        <td>{item.ghiChu || "-"}</td>
-                        {!isReadOnly && (
-                          <td>
-                            <button type="button" className="btn-delete" onClick={() => handleRemoveChiTiet(item.tempId)}>
-                              Xóa
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <section className="receipt-section">
+              <div className="receipt-section-heading">
+                <div>
+                  <span>03</span>
+                  <h4>Danh sách nguyên vật liệu trong phiếu</h4>
+                </div>
+                <p>Tổng tiền được tự tính từ danh sách chi tiết.</p>
+              </div>
 
-            <div style={{ marginTop: 16, fontWeight: 800 }}>
-              Tổng tiền: {formatMoney(tongTien)}
-            </div>
+              <div className="receipt-detail-table-wrap">
+                <table className="receipt-detail-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Mã NVL</th>
+                      <th>Tên nguyên vật liệu</th>
+                      <th>Đơn vị</th>
+                      <th>Số lượng</th>
+                      <th>Đơn giá</th>
+                      <th>Thành tiền</th>
+                      <th>Tình trạng</th>
+                      <th>Ghi chú</th>
+                      {!isReadOnly && <th>Thao tác</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {chiTietPhieuNhap.length === 0 ? (
+                      <tr>
+                        <td colSpan={isReadOnly ? 9 : 10}>
+                          <div className="receipt-empty-state">
+                            Chưa có nguyên vật liệu trong phiếu. Vui lòng chọn nguyên vật liệu và bấm Thêm dòng.
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      chiTietPhieuNhap.map((item, index) => (
+                        <tr key={item.tempId}>
+                          <td>{index + 1}</td>
+                          <td>{item.maNguyenVatLieu}</td>
+                          <td>{item.tenNguyenVatLieu}</td>
+                          <td>{item.tenDonVi || "-"}</td>
+                          <td>
+                            {!isReadOnly ? (
+                              <input
+                                className="receipt-inline-input"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={item.soLuongNhap}
+                                onChange={(e) =>
+                                  setChiTietPhieuNhap((prev) =>
+                                    prev.map((row) =>
+                                      row.tempId === item.tempId
+                                        ? { ...row, soLuongNhap: Number(e.target.value) }
+                                        : row
+                                    )
+                                  )
+                                }
+                              />
+                            ) : (
+                              item.soLuongNhap
+                            )}
+                          </td>
+                          <td>
+                            {!isReadOnly ? (
+                              <input
+                                className="receipt-inline-input"
+                                type="number"
+                                min="0"
+                                step="1000"
+                                value={item.donGia}
+                                onChange={(e) =>
+                                  setChiTietPhieuNhap((prev) =>
+                                    prev.map((row) =>
+                                      row.tempId === item.tempId
+                                        ? { ...row, donGia: Number(e.target.value) }
+                                        : row
+                                    )
+                                  )
+                                }
+                              />
+                            ) : (
+                              formatMoney(item.donGia)
+                            )}
+                          </td>
+                          <td>{formatMoney(Number(item.soLuongNhap) * Number(item.donGia))}</td>
+                          <td>{getTinhTrangLabel(item.tinhTrangHang)}</td>
+                          <td>{item.ghiChu || "-"}</td>
+                          {!isReadOnly && (
+                            <td>
+                              <button type="button" className="btn-delete" onClick={() => handleRemoveChiTiet(item.tempId)}>
+                                Xóa
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="receipt-total-row">
+                <span>Tổng tiền</span>
+                <strong>{formatMoney(tongTien)}</strong>
+              </div>
+            </section>
 
             <div className="form-actions">
               {!isReadOnly && (
