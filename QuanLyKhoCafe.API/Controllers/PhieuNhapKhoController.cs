@@ -111,57 +111,8 @@ namespace QuanLyKhoCafe.API.Controllers
 		[HttpPost]
 		public async Task<IActionResult> TaoPhieuNhap([FromBody] TaoPhieuNhapKhoDto dto)
 		{
-			if (dto == null)
-			{
-				return BadRequest("Dữ liệu phiếu nhập không hợp lệ.");
-			}
-
-			var nguoiLap = await _context.NguoiDungs.FindAsync(dto.NguoiLapId);
-
-			if (nguoiLap == null)
-			{
-				return BadRequest("Người lập phiếu không tồn tại.");
-			}
-
-			if (dto.NhaCungCapId != null)
-			{
-				var nhaCungCap = await _context.NhaCungCaps.FindAsync(dto.NhaCungCapId);
-
-				if (nhaCungCap == null)
-				{
-					return BadRequest("Nhà cung cấp không tồn tại.");
-				}
-			}
-
-			if (dto.ChiTiet == null || !dto.ChiTiet.Any())
-			{
-				return BadRequest("Phiếu nhập kho phải có ít nhất một nguyên vật liệu.");
-			}
-
-			foreach (var item in dto.ChiTiet)
-			{
-				if (item.SoLuongNhap <= 0)
-				{
-					return BadRequest("Số lượng nhập phải lớn hơn 0.");
-				}
-
-				if (item.DonGia != null && item.DonGia < 0)
-				{
-					return BadRequest("Đơn giá không được nhỏ hơn 0.");
-				}
-
-				var nguyenVatLieu = await _context.NguyenVatLieus.FindAsync(item.NguyenVatLieuId);
-
-				if (nguyenVatLieu == null)
-				{
-					return BadRequest($"Nguyên vật liệu Id = {item.NguyenVatLieuId} không tồn tại.");
-				}
-
-				if (nguyenVatLieu.TrangThai == "NgungSuDung")
-				{
-					return BadRequest($"Nguyên vật liệu {nguyenVatLieu.TenNguyenVatLieu} đã ngưng sử dụng.");
-				}
-			}
+			var validationError = await ValidatePhieuNhapDto(dto);
+			if (validationError != null) return BadRequest(validationError);
 
 			using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -170,9 +121,9 @@ namespace QuanLyKhoCafe.API.Controllers
 				var phieu = new PhieuNhapKho
 				{
 					MaPhieuNhap = TaoMaPhieuNhap(),
-					NhaCungCapId = dto.NhaCungCapId,
+					NhaCungCapId = dto!.NhaCungCapId,
 					NguoiLapId = dto.NguoiLapId,
-					NgayNhap = DateTime.Now,
+					NgayNhap = dto.NgayNhap ?? DateTime.Now,
 					TrangThai = "ChoDuyet",
 					GhiChu = dto.GhiChu
 				};
@@ -200,6 +151,7 @@ namespace QuanLyKhoCafe.API.Controllers
 				return Ok(new
 				{
 					message = "Tạo phiếu nhập kho thành công.",
+					tongTien = TinhTongTien(dto.ChiTiet),
 					data = new
 					{
 						phieu.PhieuNhapKhoId,
@@ -219,6 +171,80 @@ namespace QuanLyKhoCafe.API.Controllers
 				return BadRequest(new
 				{
 					message = "Có lỗi xảy ra khi tạo phiếu nhập kho.",
+					error = ex.Message,
+					innerError = ex.InnerException?.Message
+				});
+			}
+		}
+
+		// PUT: api/PhieuNhapKho/1
+		[HttpPut("{id}")]
+		public async Task<IActionResult> CapNhatPhieuNhap(int id, [FromBody] TaoPhieuNhapKhoDto dto)
+		{
+			var validationError = await ValidatePhieuNhapDto(dto);
+			if (validationError != null) return BadRequest(validationError);
+
+			var phieu = await _context.PhieuNhapKhos
+				.Include(x => x.ChiTietPhieuNhapKhos)
+				.FirstOrDefaultAsync(x => x.PhieuNhapKhoId == id);
+
+			if (phieu == null)
+			{
+				return NotFound("Không tìm thấy phiếu nhập kho.");
+			}
+
+			if (phieu.TrangThai == "DaDuyet")
+			{
+				return BadRequest("Phiếu đã duyệt không thể sửa.");
+			}
+
+			if (phieu.TrangThai != "ChoDuyet")
+			{
+				return BadRequest("Chỉ được sửa phiếu đang ở trạng thái Chờ duyệt.");
+			}
+
+			using var transaction = await _context.Database.BeginTransactionAsync();
+
+			try
+			{
+				phieu.NhaCungCapId = dto!.NhaCungCapId;
+				phieu.NguoiLapId = dto.NguoiLapId;
+				phieu.NgayNhap = dto.NgayNhap ?? phieu.NgayNhap;
+				phieu.GhiChu = dto.GhiChu;
+
+				if (phieu.ChiTietPhieuNhapKhos.Any())
+				{
+					_context.ChiTietPhieuNhapKhos.RemoveRange(phieu.ChiTietPhieuNhapKhos);
+				}
+
+				foreach (var item in dto.ChiTiet)
+				{
+					_context.ChiTietPhieuNhapKhos.Add(new ChiTietPhieuNhapKho
+					{
+						PhieuNhapKhoId = phieu.PhieuNhapKhoId,
+						NguyenVatLieuId = item.NguyenVatLieuId,
+						SoLuongNhap = item.SoLuongNhap,
+						DonGia = item.DonGia,
+						GhiChu = item.GhiChu
+					});
+				}
+
+				await _context.SaveChangesAsync();
+				await transaction.CommitAsync();
+
+				return Ok(new
+				{
+					message = "Cập nhật phiếu nhập kho thành công.",
+					tongTien = TinhTongTien(dto.ChiTiet)
+				});
+			}
+			catch (Exception ex)
+			{
+				await transaction.RollbackAsync();
+
+				return BadRequest(new
+				{
+					message = "Có lỗi xảy ra khi cập nhật phiếu nhập kho.",
 					error = ex.Message,
 					innerError = ex.InnerException?.Message
 				});
@@ -255,9 +281,9 @@ namespace QuanLyKhoCafe.API.Controllers
 					return BadRequest("Phiếu nhập kho đã được duyệt trước đó.");
 				}
 
-				if (phieu.TrangThai == "TuChoi")
+				if (phieu.TrangThai == "DaHuy")
 				{
-					return BadRequest("Không thể duyệt phiếu đã bị từ chối.");
+					return BadRequest("Không thể duyệt phiếu đã hủy.");
 				}
 
 				if (phieu.TrangThai != "ChoDuyet")
@@ -271,11 +297,17 @@ namespace QuanLyKhoCafe.API.Controllers
 				}
 
 				var nguoiDuyet = await _context.NguoiDungs
+					.Include(x => x.VaiTro)
 					.FirstOrDefaultAsync(x => x.NguoiDungId == dto.NguoiDuyetId);
 
 				if (nguoiDuyet == null)
 				{
 					return BadRequest("Người duyệt không tồn tại.");
+				}
+
+				if (NormalizeRole(nguoiDuyet.VaiTro?.TenVaiTro) != "quanlytiem")
+				{
+					return BadRequest("Chỉ Quản lý tiệm được duyệt phiếu nhập kho.");
 				}
 
 				foreach (var chiTiet in phieu.ChiTietPhieuNhapKhos)
@@ -297,7 +329,22 @@ namespace QuanLyKhoCafe.API.Controllers
 						);
 					}
 
+					var tonTruoc = nguyenVatLieu.TonHienTai;
 					nguyenVatLieu.TonHienTai += chiTiet.SoLuongNhap;
+
+					_context.LichSuTonKhos.Add(new LichSuTonKho
+					{
+						NguyenVatLieuId = chiTiet.NguyenVatLieuId,
+						LoaiGiaoDich = "NhapKho",
+						BangLienQuan = "PhieuNhapKho",
+						BanGhiLienQuanId = phieu.PhieuNhapKhoId,
+						SoLuongThayDoi = chiTiet.SoLuongNhap,
+						TonTruoc = tonTruoc,
+						TonSau = nguyenVatLieu.TonHienTai,
+						NguoiThucHienId = dto.NguoiDuyetId,
+						ThoiGian = DateTime.Now,
+						GhiChu = $"Duyệt phiếu nhập {phieu.MaPhieuNhap}"
+					});
 				}
 
 				phieu.NguoiDuyetId = dto.NguoiDuyetId;
@@ -344,7 +391,7 @@ namespace QuanLyKhoCafe.API.Controllers
 				return BadRequest("Không thể từ chối phiếu đã duyệt.");
 			}
 
-			phieu.TrangThai = "TuChoi";
+			phieu.TrangThai = "DaHuy";
 			phieu.GhiChu = string.IsNullOrWhiteSpace(dto?.LyDoTuChoi)
 				? phieu.GhiChu
 				: dto.LyDoTuChoi;
@@ -373,7 +420,12 @@ namespace QuanLyKhoCafe.API.Controllers
 
 			if (phieu.TrangThai == "DaDuyet")
 			{
-				return BadRequest("Không thể xóa phiếu nhập kho đã duyệt.");
+				return BadRequest("Phiếu đã duyệt không thể xóa.");
+			}
+
+			if (phieu.TrangThai != "ChoDuyet")
+			{
+				return BadRequest("Chỉ được xóa phiếu đang ở trạng thái Chờ duyệt.");
 			}
 
 			using var transaction = await _context.Database.BeginTransactionAsync();
@@ -412,6 +464,101 @@ namespace QuanLyKhoCafe.API.Controllers
 		{
 			return "PNK" + DateTime.Now.ToString("yyyyMMddHHmmss");
 		}
+
+		private async Task<string?> ValidatePhieuNhapDto(TaoPhieuNhapKhoDto? dto)
+		{
+			if (dto == null)
+			{
+				return "Dữ liệu phiếu nhập không hợp lệ.";
+			}
+
+			if (dto.NhaCungCapId == null || dto.NhaCungCapId <= 0)
+			{
+				return "Vui lòng chọn nhà cung cấp.";
+			}
+
+			if (dto.NguoiLapId <= 0)
+			{
+				return "Vui lòng chọn người lập phiếu.";
+			}
+
+			if (dto.NgayNhap == null)
+			{
+				return "Ngày nhập không được rỗng.";
+			}
+
+			var nguoiLap = await _context.NguoiDungs.FindAsync(dto.NguoiLapId);
+			if (nguoiLap == null)
+			{
+				return "Người lập phiếu không tồn tại.";
+			}
+
+			var nhaCungCap = await _context.NhaCungCaps.FindAsync(dto.NhaCungCapId);
+			if (nhaCungCap == null)
+			{
+				return "Nhà cung cấp không tồn tại.";
+			}
+
+			if (dto.ChiTiet == null || !dto.ChiTiet.Any())
+			{
+				return "Phiếu nhập phải có ít nhất một nguyên vật liệu.";
+			}
+
+			var duplicated = dto.ChiTiet
+				.GroupBy(x => x.NguyenVatLieuId)
+				.FirstOrDefault(g => g.Key > 0 && g.Count() > 1);
+
+			if (duplicated != null)
+			{
+				return "Nguyên vật liệu bị trùng trong phiếu nhập.";
+			}
+
+			foreach (var item in dto.ChiTiet)
+			{
+				if (item.NguyenVatLieuId <= 0)
+				{
+					return "Mỗi dòng chi tiết phải có nguyên vật liệu hợp lệ.";
+				}
+
+				if (item.SoLuongNhap <= 0)
+				{
+					return "Số lượng nhập phải lớn hơn 0.";
+				}
+
+				if (item.DonGia < 0)
+				{
+					return "Đơn giá nhập không được âm.";
+				}
+
+				var nguyenVatLieu = await _context.NguyenVatLieus.FindAsync(item.NguyenVatLieuId);
+
+				if (nguyenVatLieu == null)
+				{
+					return $"Nguyên vật liệu Id = {item.NguyenVatLieuId} không tồn tại.";
+				}
+
+				if (nguyenVatLieu.TrangThai == "NgungSuDung")
+				{
+					return $"Nguyên vật liệu {nguyenVatLieu.TenNguyenVatLieu} đã ngưng sử dụng.";
+				}
+			}
+
+			return null;
+		}
+
+		private static decimal TinhTongTien(IEnumerable<TaoChiTietPhieuNhapKhoDto> chiTiet)
+		{
+			return chiTiet.Sum(x => x.SoLuongNhap * (x.DonGia ?? 0));
+		}
+
+		private static string NormalizeRole(string? role)
+		{
+			return string.Concat((role ?? "")
+					.Normalize(System.Text.NormalizationForm.FormD)
+					.Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark))
+				.ToLower()
+				.Replace(" ", "");
+		}
 	}
 
 	public class TaoPhieuNhapKhoDto
@@ -419,6 +566,8 @@ namespace QuanLyKhoCafe.API.Controllers
 		public int? NhaCungCapId { get; set; }
 
 		public int NguoiLapId { get; set; }
+
+		public DateTime? NgayNhap { get; set; }
 
 		public string? GhiChu { get; set; }
 

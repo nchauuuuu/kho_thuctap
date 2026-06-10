@@ -135,11 +135,11 @@ public class ChiTietPhieuNhapKhoController : ControllerBase
 			});
 		}
 
-		if (phieuNhap.TrangThai != "Nhap")
+		if (phieuNhap.TrangThai != "ChoDuyet")
 		{
 			return BadRequest(new
 			{
-				message = "Chỉ được thêm chi tiết cho phiếu nhập đang ở trạng thái Nhap."
+				message = "Chỉ được thêm chi tiết cho phiếu nhập đang ở trạng thái Chờ duyệt."
 			});
 		}
 
@@ -242,11 +242,11 @@ public class ChiTietPhieuNhapKhoController : ControllerBase
 			});
 		}
 
-		if (phieuNhap.TrangThai != "Nhap")
+		if (phieuNhap.TrangThai != "ChoDuyet")
 		{
 			return BadRequest(new
 			{
-				message = "Chỉ được cập nhật chi tiết khi phiếu nhập đang ở trạng thái Nhap."
+				message = "Chỉ được cập nhật chi tiết khi phiếu nhập đang ở trạng thái Chờ duyệt."
 			});
 		}
 
@@ -316,11 +316,11 @@ public class ChiTietPhieuNhapKhoController : ControllerBase
 			});
 		}
 
-		if (chiTiet.PhieuNhapKho.TrangThai != "Nhap")
+		if (chiTiet.PhieuNhapKho.TrangThai != "ChoDuyet")
 		{
 			return BadRequest(new
 			{
-				message = "Chỉ được xóa chi tiết khi phiếu nhập đang ở trạng thái Nhap."
+				message = "Chỉ được xóa chi tiết khi phiếu nhập đang ở trạng thái Chờ duyệt."
 			});
 		}
 
