@@ -100,14 +100,37 @@ Màn hình `PhieuNhapKho` đã cập nhật:
 - Phiếu `DaDuyet` chỉ còn nút `Xem`.
 - Form thêm/sửa có:
   - Nhà cung cấp
-  - Người lập
-  - Ngày nhập
-  - Ghi chú
-  - Danh sách nguyên vật liệu nhập
-  - Số lượng
-  - Đơn giá
-  - Thành tiền từng dòng
-  - Tổng tiền tự tính
+  - Người lập, tự chọn theo user đang đăng nhập nếu xác định được
+  - Ngày nhập, mặc định là ngày hiện tại
+  - Số chứng từ/hóa đơn, không bắt buộc
+  - Lý do nhập:
+    - Nhập bổ sung tồn kho
+    - Nhập đầu kỳ/đầu tuần
+    - Nhà cung cấp giao hàng
+    - Nhập bù hàng thiếu
+    - Khác
+  - Ghi chú chung, không bắt buộc
+  - Khu vực thêm nguyên vật liệu nhập kho:
+    - Chỉ chọn được nguyên vật liệu đang sử dụng
+    - Hiển thị đơn vị tính sau khi chọn nguyên vật liệu
+    - Nhập số lượng, đơn giá và tự tính thành tiền
+    - Chọn tình trạng hàng: Đạt, Bao bì rách nhẹ, Giao thiếu, Sai loại, Gần hết hạn, Khác
+    - Ghi chú dòng hàng, không bắt buộc
+  - Danh sách nguyên vật liệu trong phiếu:
+    - STT
+    - Mã nguyên vật liệu
+    - Tên nguyên vật liệu
+    - Đơn vị tính
+    - Số lượng
+    - Đơn giá
+    - Thành tiền
+    - Tình trạng
+    - Ghi chú
+    - Thao tác xóa dòng
+  - Cho phép sửa nhanh số lượng và đơn giá trực tiếp trong bảng chi tiết khi phiếu chưa duyệt.
+  - Tổng tiền tự tính và hiển thị nổi bật ở cuối modal.
+  - Khi chưa có dòng chi tiết, màn hình hiển thị trạng thái rỗng thay vì bảng trống.
+  - Các thông tin bổ sung như lý do nhập, số chứng từ và tình trạng hàng được lưu ghép vào `GhiChu` để không cần thay đổi cấu trúc database hiện tại.
 
 ## 10. API liên quan
 
@@ -129,13 +152,13 @@ Màn hình `PhieuNhapKho` đã cập nhật:
   "nhaCungCapId": 1,
   "nguoiLapId": 1,
   "ngayNhap": "2026-06-10",
-  "ghiChu": "Nhập hàng đầu tuần",
+  "ghiChu": "Lý do nhập: Nhà cung cấp giao hàng | Số chứng từ: HD001 | Ghi chú: Nhập hàng đầu tuần",
   "chiTiet": [
     {
       "nguyenVatLieuId": 1,
       "soLuongNhap": 10,
       "donGia": 85000,
-      "ghiChu": "Robusta"
+      "ghiChu": "Tình trạng: Đạt | Ghi chú: Robusta"
     }
   ]
 }
@@ -194,12 +217,36 @@ Màn hình `PhieuNhapKho` đã cập nhật:
 1. Đăng nhập bằng user `QuanLyTiem`.
 2. Vào `/admin/phieu-nhap-kho`.
 3. Bấm `Thêm phiếu nhập`.
-4. Chọn nhà cung cấp, người lập, ngày nhập.
-5. Thêm ít nhất một nguyên vật liệu.
-6. Lưu phiếu.
-7. Kiểm tra phiếu mới có trạng thái `Chờ duyệt`.
-8. Bấm `Duyệt`.
-9. Kiểm tra trạng thái thành `Đã duyệt`, nút `Sửa/Xóa/Duyệt` biến mất, chỉ còn `Xem`.
+4. Trong phần `Thông tin phiếu nhập`, chọn nhà cung cấp, kiểm tra người lập, ngày nhập, nhập số chứng từ nếu có, chọn lý do nhập và ghi chú chung.
+5. Trong phần `Thêm nguyên vật liệu nhập kho`, chọn nguyên vật liệu đang sử dụng.
+6. Kiểm tra đơn vị tính tự hiển thị.
+7. Nhập số lượng lớn hơn 0 và đơn giá không âm.
+8. Chọn tình trạng hàng và nhập ghi chú dòng hàng nếu có.
+9. Bấm `Thêm dòng`.
+10. Kiểm tra dòng vừa thêm xuất hiện trong `Danh sách nguyên vật liệu trong phiếu`.
+11. Sửa nhanh số lượng hoặc đơn giá trong bảng chi tiết nếu cần.
+12. Kiểm tra thành tiền từng dòng và tổng tiền tự cập nhật.
+13. Bấm `Lưu phiếu`.
+14. Kiểm tra phiếu mới có trạng thái `Chờ duyệt`.
+15. Bấm `Duyệt`.
+16. Kiểm tra trạng thái thành `Đã duyệt`, nút `Sửa/Xóa/Duyệt` biến mất, chỉ còn `Xem`.
+
+### Validate frontend
+
+1. Bấm `Lưu phiếu` khi chưa chọn nhà cung cấp.
+   - Kết quả mong đợi: hệ thống hiển thị toast báo phải chọn nhà cung cấp.
+
+2. Bấm `Lưu phiếu` khi chưa có dòng chi tiết.
+   - Kết quả mong đợi: hệ thống hiển thị toast báo phiếu nhập phải có ít nhất một nguyên vật liệu.
+
+3. Thêm dòng với số lượng bằng 0.
+   - Kết quả mong đợi: hệ thống hiển thị toast báo số lượng nhập phải lớn hơn 0.
+
+4. Thêm dòng với đơn giá âm.
+   - Kết quả mong đợi: hệ thống hiển thị toast báo đơn giá nhập không được âm.
+
+5. Thêm trùng nguyên vật liệu đã có trong bảng chi tiết.
+   - Kết quả mong đợi: hệ thống hiển thị toast báo nguyên vật liệu bị trùng trong phiếu nhập.
 
 ## 13. Ghi chú thiết kế
 
