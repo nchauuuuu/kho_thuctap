@@ -29,6 +29,22 @@ namespace QuanLyKhoCafe.API.Controllers
 			return Convert.ToHexString(hashBytes);
 		}
 
+		private static string HashMatKhauUtf8(string matKhau)
+		{
+			using var sha256 = SHA256.Create();
+			var bytes = Encoding.UTF8.GetBytes(matKhau);
+			return Convert.ToHexString(sha256.ComputeHash(bytes));
+		}
+
+		private static bool KiemTraMatKhau(string matKhauNhap, string matKhauLuu)
+		{
+			var stored = (matKhauLuu ?? "").Trim();
+
+			return string.Equals(stored, HashMatKhau(matKhauNhap), StringComparison.OrdinalIgnoreCase)
+				|| string.Equals(stored, HashMatKhauUtf8(matKhauNhap), StringComparison.OrdinalIgnoreCase)
+				|| string.Equals(stored, matKhauNhap, StringComparison.Ordinal);
+		}
+
 		// POST: api/NguoiDung/dang-nhap
 		[HttpPost("dang-nhap")]
 		public async Task<IActionResult> DangNhap([FromBody] DangNhapDto dto)
@@ -44,7 +60,7 @@ namespace QuanLyKhoCafe.API.Controllers
 			}
 
 			var email = dto.Email.Trim().ToLower();
-			var matKhauHash = HashMatKhau(dto.MatKhau.Trim());
+			var matKhau = dto.MatKhau.Trim();
 
 			var nguoiDung = await _context.NguoiDungs
 				.Include(x => x.VaiTro)
@@ -56,7 +72,7 @@ namespace QuanLyKhoCafe.API.Controllers
 				return BadRequest(new { message = "Email hoặc mật khẩu không đúng." });
 			}
 
-			if (!string.Equals(nguoiDung.MatKhauHash, matKhauHash, StringComparison.OrdinalIgnoreCase))
+			if (!KiemTraMatKhau(matKhau, nguoiDung.MatKhauHash))
 			{
 				return BadRequest(new { message = "Email hoặc mật khẩu không đúng." });
 			}

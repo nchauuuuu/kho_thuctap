@@ -53,4 +53,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+if (app.Environment.IsDevelopment())
+{
+	await DevDataSeeder.SeedAsync(app.Services);
+}
+
 app.Run();
