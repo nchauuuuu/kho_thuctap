@@ -194,52 +194,112 @@ function Login() {
 
   return (
     <div className="login-page-v2">
-      <div className="login-box">
-        <div className="login-brand">
-          <div className="login-logo">
+      <div className="coffee-beans" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <section className="login-shell" aria-label="Đăng nhập Kho Cafe">
+        <div className="login-visual" aria-hidden="true">
+          <div className="login-visual-content">
+            <div className="login-badge">
+              <i className="bi bi-box-seam"></i>
+              Quản lý kho cà phê
+            </div>
+
+            <h1>Kho Cafe</h1>
+            <p>
+              Theo dõi nhập, xuất, tồn kho nguyên vật liệu cho quán cà phê trong
+              một màn hình gọn gàng.
+            </p>
+
+            <div className="login-stats">
+              <div>
+                <strong>24/7</strong>
+                <span>Theo dõi tồn kho</span>
+              </div>
+              <div>
+                <strong>3 vai trò</strong>
+                <span>Quản lý truy cập</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="coffee-cup">
+            <span className="steam steam-1"></span>
+            <span className="steam steam-2"></span>
+            <span className="steam steam-3"></span>
             <i className="bi bi-cup-hot"></i>
           </div>
-
-          <h2>Kho Cafe</h2>
-          <p>Đăng nhập để quản lý kho nguyên vật liệu</p>
         </div>
 
-        <form onSubmit={handleLogin} className="login-form">
-          <div className="login-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Nhập email"
-              autoComplete="email"
-            />
+        <div className="login-box">
+          <div className="login-brand">
+            <div className="login-logo">
+              <i className="bi bi-cup-hot"></i>
+            </div>
+
+            <span>Chào mừng quay lại</span>
+            <h2>Đăng nhập</h2>
+            <p>Truy cập hệ thống quản lý kho nguyên vật liệu cà phê.</p>
           </div>
 
-          <div className="login-group">
-            <label>Mật khẩu</label>
-            <input
-              type="password"
-              name="matKhau"
-              value={form.matKhau}
-              onChange={handleChange}
-              placeholder="Nhập mật khẩu"
-              autoComplete="current-password"
-            />
+          <form onSubmit={handleLogin} className="login-form">
+            <div className="login-group">
+              <label>Email</label>
+              <div className="login-input-wrap">
+                <i className="bi bi-envelope"></i>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="Nhập email"
+                  autoComplete="email"
+                />
+              </div>
+            </div>
+
+            <div className="login-group">
+              <label>Mật khẩu</label>
+              <div className="login-input-wrap">
+                <i className="bi bi-lock"></i>
+                <input
+                  type="password"
+                  name="matKhau"
+                  value={form.matKhau}
+                  onChange={handleChange}
+                  placeholder="Nhập mật khẩu"
+                  autoComplete="current-password"
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="login-button" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="login-spinner"></span>
+                  Đang đăng nhập...
+                </>
+              ) : (
+                <>
+                  Đăng nhập
+                  <i className="bi bi-arrow-right"></i>
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="login-hint">
+            <i className="bi bi-shield-check"></i>
+            <p>
+              Tài khoản mẫu: <b>quanly@kho.cafe</b> / <b>123456</b>
+            </p>
           </div>
-
-          <button type="submit" className="login-button" disabled={loading}>
-            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-          </button>
-        </form>
-
-        <div className="login-hint">
-          <p>
-            Tài khoản mẫu: <b>quanly@kho.cafe</b> / <b>123456</b>
-          </p>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
